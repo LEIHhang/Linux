@@ -6,6 +6,7 @@ void *thr_start(void *arg)//返回值类型为void*，不要错误认为是函�
 {
    // sleep(5);
    // pthread_exit(NULL);//线程退出，谁调用谁退出
+   pthread_detach(pthread_self());
    char *ptr = "aiwozhonghau~\n";
    pthread_exit(ptr);
     while(1)
@@ -28,6 +29,7 @@ int main()
     // sleep(5);
     // pthread_cancel(tid);//调用线程退出
     //将主线程进程终止，就会导致所有线程变成僵尸状态
+    sleep(5);
     char *retval;
     pthread_join(tid,(void**)&retval);//获取char *类型数据，所以要这样定义
     printf("pthread_join:%s\n",retval);
