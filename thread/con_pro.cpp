@@ -29,13 +29,13 @@ class BlockQueue
             pthread_mutex_destroy(&_mutex);
         }
         //提供给生产者的接口，数据入队
-        bool quue_push(int &data)
+        bool queue_push(int &data)
         {
+            pthread_mutex_lock(&_mutex);
             while(_queue.size() == _capacity)//判断队列节点是否添加满了
             {
                 pthread_cond_wait(&_cond_productor,&_mutex);
             }
-            pthread_mutex_lock(&_mutex);
             _queue.push(data);
             pthread_mutex_unlock(&_mutex);
             pthread_cond_signal(&_cond_consumer);
@@ -44,11 +44,11 @@ class BlockQueue
         //提供给消费者的接口————数据出口
         bool queue_pop(int &data)
         {
+            pthread_mutex_lock(&_mutex);
             while(_queue.empty())
             {
                 pthread_cond_wait(&_cond_consumer,&_mutex);
             }
-            pthread_mutex_lock(&_mutex);
             data=_queue.front();
             _queue.pop();
             pthread_mutex_unlock(&_mutex);
@@ -74,7 +74,7 @@ void *thr_productor(void *arg)
     BlockQueue* b=(BlockQueue*)arg;
     while(1)
     {
-        b->quue_push(data);
+        b->queue_push(data);
         printf("i put a data %d\n",data++);
     }
     return NULL;
@@ -94,7 +94,7 @@ int main()
     }
     for(int i=0;i<MAX_THR;i++)
     {
-        int ret=pthread_create(&ctid[i],NULL,thr_consumer,(void*)&queue);
+        int ret=pthread_create(&ctid[i],NULL,thr_productor,(void*)&queue);
         if(ret!=0)
         {
             printf("create thr error\n");
