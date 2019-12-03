@@ -5,7 +5,9 @@
 #include <pthread.h>
 #include <queue>
 using namespace std;
+//typedef一个函数指针
 typedef void (*TaskHandler)(int data);
+
 class ThreadTask
 {
     private:
@@ -63,6 +65,7 @@ class ThreadPool
         }
 
     private:
+        //必须设置为静态函数,因为如果是成员函数，参数中有this指针，不符合接口
         static void *thr_start(void *arg)
         {
             ThreadPool* pool = (ThreadPool*)arg;
@@ -114,13 +117,12 @@ class ThreadPool
             return true;
         }
 };
-void test(int data)
-{
-    srand(data);
-    int sec = rand()% 5;
-    printf("thread: %p --get data:%d sleep  %d sec \n",pthread_self(),data, sec);
-    sleep(sec);
-}
+    void test(int data)
+    {
+            printf("this is %p --get data:%d \n",pthread_self(),data);
+                sleep(1);//睡眠一秒，方便查看
+                
+    }
 int main()
 {
     ThreadPool pool;

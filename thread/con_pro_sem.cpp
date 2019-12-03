@@ -16,19 +16,22 @@ class BlockQueue
         int capacity;
         int _step_read;
         int _step_write;
-        sem_t _lock;
+        sem_t con_lock;
+        sem_t pro_lock;
         sem_t sem_con;
         sem_t sem_pro;
     public:
         BlockQueue(int max_q = max_queue):capacity(max_q),queue(max_q),_step_read(0),_step_write(0)
         {
-            sem_init(&_lock,0,1);
+            sem_init(&con_lock,0,1);
+            sem_init(&pro_lock,0,1);
             sem_init(&sem_con,0,0);
             sem_init(&sem_pro,0,max_q);
         }
         ~BlockQueue()
         {
-            sem_destroy(&_lock);
+            sem_destroy(&con_lock);
+            sem_destroy(&pro_lock);
             sem_destroy(&sem_con);
             sem_destroy(&sem_pro);
         }
@@ -38,14 +41,16 @@ class BlockQueue
             sem_wait(&sem_pro);
             //2.先上锁
             //这里的锁目的是为了保护数据访问的，不能放在条件判断之前
-            sem_wait(&_lock);
+            //如果放在信号量判断之前，若消费者信号量阻塞，则会产生死锁
+            sem_wait(&pro_lock);
             //3.插入数据
             queue[_step_write]=data;
+            //求余操作保证_step_write的范围
             _step_write = (_step_write +1 )% capacity;
-            //4.唤醒消费者
+            //4.唤醒消费者进行取数据
             sem_post(&sem_con);
             //5.解锁
-            sem_post(&_lock);
+            sem_post(&pro_lock);
         }
         bool queue_pop(int &data)
         {
@@ -53,14 +58,14 @@ class BlockQueue
             sem_wait(&sem_con);
             //2.上锁//这里的上锁目的是和相同线程间进行互斥
             //本来应该不同角色设置一把锁，如果是多核CPU就能实现并发
-            sem_wait(&_lock);
+            sem_wait(&con_lock);
             //3.进行获取数据操作
             data = queue[_step_read];
             _step_read = (_step_read + 1)% capacity;
             //4.唤醒生产者可以进行数据的插入了
             sem_post(&sem_pro);
             //5.解锁
-            sem_post(&_lock);
+            sem_post(&con_lock);
         }
 };
 void *thr_con(void *arg)

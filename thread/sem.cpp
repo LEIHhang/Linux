@@ -32,6 +32,8 @@ void *thr_cook(void *arg)
 int main()
 {
     int ret;
+    //参数解释
+    //sem变量地址，设置线程/进程使用符号0是线程/非0是进程，设置当前资源数
     sem_init(&sem,0,0);
     pthread_t tid1,tid2;
     ret = pthread_create(&tid1,NULL,thr_eat,NULL);

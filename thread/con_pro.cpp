@@ -14,44 +14,47 @@ class BlockQueue
         int _capacity;//确定队列的最大容量
         pthread_cond_t _cond_consumer;//消费者等待队列
         pthread_cond_t _cond_productor;//生产者等待队列
-        pthread_mutex_t _mutex;//设置互斥锁
+        pthread_mutex_t con_mutex;//设置互斥锁
+        pthread_mutex_t pro_mutex;//设置互斥锁
     public:
         BlockQueue(int max_queue = 10):_capacity(max_queue) 
         {
             pthread_cond_init(&_cond_consumer,NULL);
             pthread_cond_init(&_cond_productor,NULL);
-            pthread_mutex_init(&_mutex,NULL);
+            pthread_mutex_init(&con_mutex,NULL);
+            pthread_mutex_init(&pro_mutex,NULL);
         }
         ~BlockQueue()
         {
             pthread_cond_destroy(&_cond_consumer);
             pthread_cond_destroy(&_cond_productor);
-            pthread_mutex_destroy(&_mutex);
+            pthread_mutex_destroy(&con_mutex);
+            pthread_mutex_destroy(&pro_mutex);
         }
         //提供给生产者的接口，数据入队
         bool queue_push(int &data)
         {
-            pthread_mutex_lock(&_mutex);
+            pthread_mutex_lock(&pro_mutex);
             while(_queue.size() == _capacity)//判断队列节点是否添加满了
             {
-                pthread_cond_wait(&_cond_productor,&_mutex);
+                pthread_cond_wait(&_cond_productor,&pro_mutex);
             }
             _queue.push(data);
-            pthread_mutex_unlock(&_mutex);
+            pthread_mutex_unlock(&pro_mutex);
             pthread_cond_signal(&_cond_consumer);
             return true;
         }
         //提供给消费者的接口————数据出口
         bool queue_pop(int &data)
         {
-            pthread_mutex_lock(&_mutex);
+            pthread_mutex_lock(&con_mutex);
             while(_queue.empty())
             {
-                pthread_cond_wait(&_cond_consumer,&_mutex);
+                pthread_cond_wait(&_cond_consumer,&con_mutex);
             }
             data=_queue.front();
             _queue.pop();
-            pthread_mutex_unlock(&_mutex);
+            pthread_mutex_unlock(&con_mutex);
             pthread_cond_signal(&_cond_productor);
             return true;
         }
