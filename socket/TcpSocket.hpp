@@ -2,6 +2,7 @@
 #define __M_TCP_H
 
 #pragma once
+#include<stdlib.h>
 #include<stdio.h>
 #include<unistd.h>
 #include<error.h>
@@ -13,6 +14,7 @@
 using namespace std;
 #define MAX_LISTEN 10
 #define MAX_RECV 4096
+#define CHECK_RET(q) if((q)==false){return -1;}
 class TcpSocket
 {
 public:
@@ -82,12 +84,13 @@ public:
     {
         struct sockaddr_in addr;
         socklen_t len = sizeof(addr);
-        sock->_socket = accept(_socket , (struct sockaddr*)&addr, &len); 
-        if(sock->_socket == -1)
+        int ret = accept(_socket , (struct sockaddr*)&addr, &len); 
+        if(ret < 0)
         {
             perror("accept error\n");
             return false;
         }
+        sock->_socket = ret;
         if(ip!=NULL)
         {
             *ip = inet_ntoa(addr.sin_addr);
@@ -99,7 +102,7 @@ public:
         return true;
     }
     //5.发送数据
-    bool Send(string &buf)
+    bool Send(const string &buf)
     {
        int ret = send(_socket , &buf[0] ,buf.size(), 0);
        if(ret < 0)

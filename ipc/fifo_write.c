@@ -19,18 +19,19 @@ int main()
         return -1;
         }
     }
-    int fd = open(file,O_RDONLY);
+    int fd = open(file,O_WRONLY);
     if(fd<0){
         perror("open error");
         return -1;
     }
-    printf("open sucess\n");
+    printf("write open sucess\n");
     char buf[1024];
+    int i=0;
     while(1)
     {
-        sleep(1);
-        read(fd,buf,1023);
-        printf("%s\n",buf);
+        sprintf(buf,"我是第%d条数据\n",i++);
+        write(fd,buf,strlen(buf));
+
     }
     return 0;
 }
