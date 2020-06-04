@@ -67,7 +67,7 @@ class ThreadPool
     private:
         //必须设置为静态函数,因为如果是成员函数，参数中有this指针，不符合接口
         static void *thr_start(void *arg)
-        {
+        {//通过传递this指针才能获取当前线程池中的任务队列中的任务。
             ThreadPool* pool = (ThreadPool*)arg;
             while(1)
             {

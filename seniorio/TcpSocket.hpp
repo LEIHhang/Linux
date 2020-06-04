@@ -1,3 +1,4 @@
+//防止多次包含
 #ifndef __M_TCP_H
 #define __M_TCP_H
 
@@ -21,6 +22,14 @@ public:
     TcpSocket():_socket(-1) {}
     ~TcpSocket() {}
 public:
+    int Getfd()
+    {
+        return _socket;
+    }
+    void Setfd(int fd)
+    {
+        _socket = fd;
+    }
     //1.创建套接字
     bool Socket()
     {
